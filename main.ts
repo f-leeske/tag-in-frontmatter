@@ -1,13 +1,57 @@
+import { create } from 'domain';
 import { App, Editor, MarkdownView, Modal, Plugin, PluginSettingTab, Setting, SuggestModal, editorEditorField } from 'obsidian';
+import { isNumberObject } from 'util/types';
 
 /**
- * TODO find the position to insert a new tag in the YAML frontmatter
+ * TODO improve error handling
+ * TODO allow bracket format instead of markdown list
+ * TODO turn this into a pure query without changing the file
+ * 
+ * find the position of tags in the frontmatter. frontmatter has to exist! If the frontmatter is invalid, returns undefined
  * 
  * @param editor the editor instance
  * @returns the line number to insert (the character position is always 0)
  */
-async function findTagsInFrontmatter(editor: Editor): Promise<number> {
-	return 1;
+function findTagsInFrontmatter(editor: Editor): number | undefined {
+	let i = 1
+	let line = editor.getLine(i);
+	while (line != '---') {
+		if (line.startsWith('tags:')) {
+			if (line.endsWith('[]')) { // remove empty list brackets if they exist 
+				editor.replaceRange('tags:\n', { ch: 0, line: i }, { ch: line.length, line: i })
+			}
+			return i + 1;
+		}
+		i += 1;
+		console.log(i)
+		try {
+			line = editor.getLine(i);
+		} catch (error) {
+			return undefined // frontmatter is never closed -> invalid file
+		}
+	}
+	// tags not in frontmatter, so we create them. This is a bit dirty and TODO
+	console.log('no tags')
+	editor.replaceRange('tags:\n', { ch: 0, line: 1 })
+	return 2;
+
+}
+
+/**
+ * return if the document has any frontmatter, i.e. starts with '---\n'. For performance reasons, doesn't check if the frontmatter is valid!
+ */
+function frontmatterExists(editor: Editor): boolean {
+	let line0 = editor.getLine(0);
+	return line0 == '---'
+}
+
+/**
+ * append the two lines containing '---' as yaml frontmatter.
+ * @param editor 
+ */
+function createFrontmatter(editor: Editor) {
+	editor.replaceRange('---\n', { ch: 0, line: 0 });
+	editor.replaceRange('---\n', { ch: 0, line: 0 });
 }
 
 /**
@@ -83,9 +127,17 @@ export default class TagInFM extends Plugin {
 	 */
 	async addTagToFrontmatter(editor: Editor, view: MarkdownView) {
 		editor.focus()
-		const nameModal = new UserInputModal("Name of the new tag",);
-		let insertPosition = await findTagsInFrontmatter(editor)
-		const userInput = await nameModal.open()
-		editor.replaceRange('  - ' + userInput + '\n', { ch: 0, line: 2 });
+		const nameModal = new UserInputModal("Name of the new tag");
+		const userInput = await nameModal.open();
+		console.log(userInput);
+		if (!frontmatterExists(editor)) {
+			createFrontmatter(editor)
+		}
+		let insertPosition = findTagsInFrontmatter(editor);
+		if (insertPosition === undefined) {
+			console.log('undefined frontmatter')
+			return //TODO tell user that frontmatter is illegal
+		}
+		editor.replaceRange('  - ' + userInput + '\n', { ch: 0, line: insertPosition });
 	}
 }
