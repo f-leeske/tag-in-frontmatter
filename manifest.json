@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
+	"id": "add-tag-in-frontmatter",
+	"name": "Add Tag to Frontmatter",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
-	"description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "Adds a single command to add a tag to the list of tags in the frontmatter of a note.",
+	"author": "Fabian Leeske",
+	"authorUrl": "https://github.com/f-leeske/tag-in-frontmatter",
 	"isDesktopOnly": false
 }
