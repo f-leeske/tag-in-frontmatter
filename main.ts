@@ -10,7 +10,7 @@ import { isNumberObject } from 'util/types';
  * find the position of tags in the frontmatter. frontmatter has to exist! If the frontmatter is invalid, returns undefined
  * 
  * @param editor the editor instance
- * @returns the line number to insert (the character position is always 0)
+ * @returns the line number to insert at (the character position is always 0)
  */
 function findTagsInFrontmatter(editor: Editor): number | undefined {
 	let i = 1
@@ -50,6 +50,7 @@ function frontmatterExists(editor: Editor): boolean {
  * @param editor 
  */
 function createFrontmatter(editor: Editor) {
+	console.log('creating frontmatter')
 	editor.replaceRange('---\n', { ch: 0, line: 0 });
 	editor.replaceRange('---\n', { ch: 0, line: 0 });
 }
@@ -81,9 +82,7 @@ export class UserInputModal extends SuggestModal<string> {
 
 	selectSuggestion(value: string, evt: MouseEvent | KeyboardEvent): void {
 		if (this.resolve) {
-			let res;
-			res = value;
-			this.resolve(res);
+			this.resolve(value);
 		}
 		super.selectSuggestion(value, evt);
 	}
@@ -131,11 +130,12 @@ export default class TagInFM extends Plugin {
 		const userInput = await nameModal.open();
 		console.log(userInput);
 		if (!frontmatterExists(editor)) {
+			console.log('no frontmatter')
 			createFrontmatter(editor)
 		}
 		let insertPosition = findTagsInFrontmatter(editor);
 		if (insertPosition === undefined) {
-			console.log('undefined frontmatter')
+			console.log('invalid frontmatter')
 			return //TODO tell user that frontmatter is illegal
 		}
 		editor.replaceRange('  - ' + userInput + '\n', { ch: 0, line: insertPosition });
